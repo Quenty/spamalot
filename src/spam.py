@@ -1,10 +1,11 @@
-from flask import Flask, request, render_template, redirect, url_for, session, send_from_directory
+from flask import Flask, request, render_template, redirect, url_for, session
 from random import choice, shuffle, randint
 from string import ascii_letters
 from collections import Counter, defaultdict
 from time import time
 import os
 from role_data import *
+import app_static_routing
 
 filename = os.path.join(os.path.dirname(__file__), '../data/room_names.txt')
 WORDS = tuple(n.strip() for n in open(filename))
@@ -275,37 +276,7 @@ class ComplaintException(Exception):
 
 app = Flask(__name__)
 app.secret_key = get_secret()
-
-
-@app.route('/js/bootstrap/<path:path>')
-def send_bootstrap_js(path):
-    return send_from_directory('../node_modules/bootstrap/dist/js', path)
-
-
-@app.route('/css/bootstrap/<path:path>')
-def send_bootstrap_css(path):
-    return send_from_directory('../node_modules/bootstrap/dist/css', path)
-
-
-@app.route('/js/sweetalert2/<path:path>')
-def send_sweetalert_js(path):
-    return send_from_directory('../node_modules/sweetalert2/dist', path)
-
-
-@app.route('/css/sweetalert2/<path:path>')
-def send_sweetalert_css(path):
-    return send_from_directory('../node_modules/sweetalert2/dist', path)
-
-
-@app.route('/js/jquery/<path:path>')
-def send_jquery(path):
-    return send_from_directory('../node_modules/jquery/dist', path)
-
-
-@app.route('/css/<path:path>')
-def send_css(path):
-    return send_from_directory('static/css', path)
-
+app_static_routing.init_routes(app)
 
 class Carafe:
     def __init__(self):
