@@ -18,7 +18,7 @@ class Room:
 
         # Immutable
         self._room_code = room_code
-        self._creator_uid = None
+        self._creator_uid = creator_uid
 
         # Mutable
         self._players_in_room = list()  # To keep it ordered -_-
@@ -58,6 +58,11 @@ class Room:
     def set_configure(self, config):
         assert(config)
         self._config = config
+
+        max_player_count = self.get_max_player_count()
+        while len(self._players_in_room) > max_player_count and max_player_count > 0:
+            self.remove_player(self._players_in_room[-1])
+
         self._possibly_do_assignments()
 
     def _possibly_do_assignments(self):
@@ -78,7 +83,11 @@ class Room:
     def has_player(self, uid):
         return uid in self._players_in_room
 
+    def can_add_player(self):
+        return len(self._players_in_room) != self.get_max_player_count()
+
     def add_player(self, uid):
+        assert(uid)
         if self._current_assignments:
             return False
 

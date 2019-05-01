@@ -41,6 +41,11 @@
             <li>{{ plr }}</li>
           {% endfor %}
         </ul>
+        {% if (not is_in_room) and (can_add_player) %}
+          <form method="POST" action="{{ url_for('join_room', roomcode=roomcode) }}">
+            <input type="submit" class="btn btn-secondary float-right ml-2 mb-1" value="Join this room">
+          </form>
+        {% endif %}
       </div>
       <div class="col mt-2">
         <h5>Roles</h5>

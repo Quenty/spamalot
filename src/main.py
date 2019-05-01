@@ -3,9 +3,10 @@ from uuid import uuid4
 from models.Room import Room
 from models.Configuration import MakeConfiguration, MakeDefaultConfiguration
 import random
+import time
 import app_static_routing
 import os
-
+import string
 
 def get_secret():
     if 'secret.txt' not in os.listdir('../'):
@@ -57,10 +58,13 @@ def handle_uid():
     if not session.get('uid'):
         session['uid'] = uuid4()
 
+    uid = session['uid']
+    if uid in names:
+        name_last_used[names[uid]] = time.time()
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', username=session['username'])
 
 
 @app.route('/join')
@@ -80,8 +84,7 @@ def join_post():
     room = get_or_create_room(roomcode)
 
     if not room.add_player(session['uid']):
-        # session['complaints'] =
-        print("TODO")
+        session['room_complaint'] = 'Room is already filled'
 
     return redirect(url_for('room', roomcode=roomcode))
 
@@ -97,11 +100,11 @@ def configure(roomcode):
     return render_template('create.html', roomcode=roomcode, **configuration)
 
 
-@app.route('/room/<path:roomcode>/join')
+@app.route('/room/<path:roomcode>/join', methods=['POST'])
 def join_room(roomcode):
     room = get_or_create_room(roomcode)
     if not room.add_player(session['uid']):
-        print("TODO")
+        session['room_complaint'] = 'Room is already filled'
 
     return redirect(url_for('room', roomcode=roomcode))
 
@@ -134,15 +137,23 @@ def room(roomcode):
     if not room:
         return redirect(url_for('configure', roomcode=roomcode))
 
+    complaints = []
+    if session.get('room_complaint'):
+        session['room_complaint'] = None
+        complaints = [session['room_complaint']]
+
     role_info = room.get_role_info(session['uid'], get_user_name_from_uid)
     return render_template('game.html',
                            roomcode=room.get_room_code(),
                            doing_config=room.is_configuring() and get_user_name_from_uid(room.get_creator_uid()) or False,
                            is_creator=session['uid'] == room.get_creator_uid(),
+                           can_add_player=room.can_add_player(),
                            players=room.get_player_names(get_user_name_from_uid),
                            roles=room.get_roles_data_for_rendering(),
+                           is_in_room=room.has_player(session['uid']),
                            status=f'{room.get_player_count()}/{room.get_max_player_count()}',
-                           role_info=role_info)
+                           role_info=role_info,
+                           complaints=complaints)
 
 
 @app.route('/createrandomroom')
@@ -156,42 +167,44 @@ def createrandomroom():
 def leave_room(roomcode):
     room = get_or_create_room(roomcode)
     room.remove_player(session['uid'])
-    return redirect(url_for('index'))
+    return redirect(url_for('room', roomcode=roomcode))
 
-# @app.route('/login', methods=['GET'])
-# def login():
-#     return render_template('login.html')
+@app.route('/login', methods=['GET'])
+def login():
+    return render_template('login.html')
 
 
-# @app.route('/login', methods=['POST'])
-# def login_post():
-#     complaints = []
-#     username = request.form['user_input'].strip()
+@app.route('/login', methods=['POST'])
+def login_post():
+    complaints = []
+    username = request.form['user_input'].strip()
 
-#     username_taken = False
-#     if newname in names.values():
-#         if newname == names.get(session['uid'], None):
-#             '''then it's your name, and it's okay'''
-#         elif time() - name_last_used.get(newname, 0) > NAME_TIMEOUT:
-#             '''then it's timed out, and it's okay'''
-#         else:
-#             username_taken = True
+    username_taken = False
+    if username in names.values():
+        if username == names.get(session['uid'], None):
+            '''then it's your name, and it's okay'''
+        elif time.time() - name_last_used.get(username, 0) > NAME_TIMEOUT:
+            '''then it's timed out, and it's okay'''
+        else:
+            username_taken = True
 
-#     for condition, message in (
-#             (username_taken, 'Username is already taken.'),
-#             (not (set(newname) < set(ascii_letters + " ")), 'No special characters.'),
-#             (len(newname) < 2, 'Username is too short'),
-#             (len(newname) > 40, 'Username is too long')):
+    for condition, message in (
+            (username_taken, 'Username is already taken.'),
+            (not (set(username) < set(string.ascii_letters + " ")), 'No special characters.'),
+            (len(username) < 2, 'Username is too short'),
+            (len(username) > 40, 'Username is too long')):
 
-#         if condition:
-#             complaints.append(message)
+        if condition:
+            complaints.append(message)
 
-#     # Passed sanity checks
-#     if len(complaints) <= 0:
-#         session['username'] = username
-#         return redirect(url_for('index'))
+    # Passed sanity checks
+    if len(complaints) <= 0:
+        session['username'] = username
+        names[session['uid']] = username
+        name_last_used[username] = time.time()
+        return redirect(url_for('index'))
 
-#     return render_template('login.html', complaints=complaints)
+    return render_template('login.html', complaints=complaints)
 
 
 if __name__ == '__main__':
