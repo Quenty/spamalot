@@ -47,8 +47,14 @@ VISION_MATRIX = (
     (EVIL_GROUP,        EVIL_GROUP,                   'also evil',          'danger'),
     (EVIL_GROUP,        DOUBLE_LANCELOTS,             'the Lancelots',      'warning'),
     (EVIL_GROUP,        SINGLE_LANCELOTS,             'the Lancelot',       'warning'),
-    (DOUBLE_LANCELOTS,  DOUBLE_LANCELOTS,             'the other Lancelot', 'warning'),)
+    (DOUBLE_LANCELOTS,  DOUBLE_LANCELOTS,             'the other Lancelot', 'warning'),
+)
 
-DEFAULT_FORM = {'num_players': 7, Role.merlin: True, Role.percival: True,
-                Role.assassin: True, Role.morgana: True, Role.mordred: True, }
-EMPTY_FORM = {'num_players': -1}
+
+def get_role_css_class(role):
+    if role in GOOD_ALIGNED:
+        return 'info'
+    elif role in EVIL_ALIGNED:
+        return 'danger'
+    else:
+        return 'warning'

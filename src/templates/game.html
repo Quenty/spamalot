@@ -8,16 +8,20 @@
 {% endblock %}
 
 {% block content %}
+{% if role_info %}
   <div class="row">
     <div class="col-md">
       <h2>Room <small class="text-muted">{{ roomcode }}</small></h2>
     </div>
     <div class="col-md mb-2">
-        <a href="/" class="btn btn-secondary float-right ml-2 mb-1">Leave room</a>
+        <form method="POST" action="{{ url_for('leave_room', roomcode=roomcode) }}">
+          <input type="submit" class="btn btn-secondary float-right ml-2 mb-1" value="Leave room">
+        </form>
+
         {% if is_creator %}
-          <form method="POST">
+          <form method="POST" action="{{ url_for('rematch', roomcode=roomcode) }}">
             <input type="submit" class="btn btn-primary float-right mb-1" value="Rematch">
-            <small class="float-right">Only the host can rematch (which is you). Once you rematch tell your friends to refresh to page to rejoin.</small>
+            <small class="float-right">Only the creator can rematch (which is you). Once you rematch tell your friends to refresh to page to rejoin.</small>
           </form>
         {% endif %}
     </div>
@@ -96,10 +100,11 @@
         </div>
     {% endif %}
   {% endif %}
-{%  endblock %}
+{% endif %}
+{% endblock %}
 
 {% block script %}
-  {% if not role_info.has_role %}
+  {% if not (role_info and role_info.has_role) %}
   <script>
     console.log("Refreshing hack implemented");
     setTimeout(function() {
@@ -108,7 +113,7 @@
   </script>
   {% endif %}
 
-  {% if role_info.has_role %}
+  {% if role_info and role_info.has_role %}
     <script>
       const main_container = $('#main-container');
       const confirmSwal = swal.mixin({
