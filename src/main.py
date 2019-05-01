@@ -8,6 +8,7 @@ import app_static_routing
 import os
 import string
 
+
 def get_secret():
     if 'secret.txt' not in os.listdir('../'):
         open('../secret.txt', 'w').write(random_string(100))
@@ -41,7 +42,7 @@ def new_room_code():
 def get_user_name_from_uid(uid):
     assert(uid)
 
-    return names.get(uid, "[Internal Error: Unknown User]")
+    return names.get(uid, f"[Internal Error: Unknown User {uid}]")
 
 
 def get_or_create_room(roomcode):
@@ -61,6 +62,16 @@ def handle_uid():
     uid = session['uid']
     if uid in names:
         name_last_used[names[uid]] = time.time()
+    else:
+        if request.path.startswith('/js'):
+            pass
+        elif request.path.startswith('/css'):
+            pass
+        elif request.path == '/login':
+            pass
+        else:
+            return redirect(url_for('login'))
+
 
 @app.route('/')
 def index():

@@ -40,7 +40,7 @@ rooms = {}
 def get_user_name_from_uid(uid):
     assert(uid)
 
-    return names.get(uid, "[Internal Error: Unknown User]")
+    return names.get(uid, f"[Internal Error: Unknown User {uid}]")
 
 # --- framework ---
 

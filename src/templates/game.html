@@ -14,9 +14,13 @@
       <h2>Room <small class="text-muted">{{ roomcode }}</small></h2>
     </div>
     <div class="col-md mb-2">
-        <form method="POST" action="{{ url_for('leave_room', roomcode=roomcode) }}">
-          <input type="submit" class="btn btn-secondary float-right ml-2 mb-1" value="Leave room">
-        </form>
+        {% if is_in_room %}
+          <form method="POST" action="{{ url_for('leave_room', roomcode=roomcode) }}">
+            <input type="submit" class="btn btn-secondary float-right ml-2 mb-1" value="Leave room">
+          </form>
+        {% else %}
+          <a href="/" class="btn btn-secondary float-right ml-2 mb-1">Back home</a>
+        {% endif %}
 
         {% if is_creator %}
           <form method="POST" action="{{ url_for('rematch', roomcode=roomcode) }}">
